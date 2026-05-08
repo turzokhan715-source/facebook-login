@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Facebook Login</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .fb-login-button {
+            margin: 20px 0;
+        }
+        #user-info {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f0f2f5;
+            border-radius: 8px;
+            display: none;
+        }
+        #user-info img {
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            margin-bottom: 10px;
+        }
+        .logout-btn {
+            background: #1877f2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-top: 15px;
+        }
+        .logout-btn:hover {
+            background: #166fe5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Facebook Login</h1>
+        
+        <!-- Facebook Login Button -->
+        <div class="fb-login-button" 
+             data-width="" 
+             data-size="large" 
+             data-button-type="login_with" 
+             data-layout="default" 
+             data-auto-logout-link="false" 
+             data-use-continue-as="true">
+        </div>
+
+        <!-- User Info Display -->
+        <div id="user-info">
+            <img id="user-pic" src="" alt="Profile Picture">
+            <h2 id="user-name"></h2>
+            <p id="user-email"></p>
+            <p><strong>Access Token:</strong></p>
+            <p id="access-token" style="word-break: break-all; font-size: 12px;"></p>
+            <button class="logout-btn" onclick="logoutUser()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Facebook SDK -->
+    <script>
+        // Initialize Facebook SDK
+        window.fbAsyncInit = function() {
+            FB.init({
+                appId      : '1595436844898808',  // Your App ID
+                cookie     : true,
+                xfbml      : true,
+                version    : 'v18.0'
+            });
+            
+            // Check login status on page load
+            FB.getLoginStatus(function(response) {
+                statusChangeCallback(response);
+            });
+        };
+
+        // Load Facebook SDK
+        (function(d, s, id){
+            var js, fjs = d.getElementsByTagName(s)[0];
+            if (d.getElementById(id)) {return;}
+            js = d.createElement(s); js.id = id;
+            js.src = "https://connect.facebook.net/en_US/sdk.js";
+            fjs.parentNode.insertBefore(js, fjs);
+        }(document, 'script', 'facebook-jssdk'));
+
+        // Handle login status
+        function statusChangeCallback(response) {
+            if (response.status === 'connected') {
+                // User is logged in
+                console.log('Logged in and authenticated');
+                getUserInfo();
+            } else {
+                // User is not logged in
+                console.log('Not logged in');
+                document.getElementById('user-info').style.display = 'none';
+            }
+        }
+
+        // Get user information
+        function getUserInfo() {
+            FB.api('/me', {fields: 'name,email,picture'}, function(response) {
+                console.log('User Info:', response);
+                
+                // Display user info
+                document.getElementById('user-name').textContent = response.name;
+                document.getElementById('user-email').textContent = response.email || 'Email not available';
+                document.getElementById('user-pic').src = response.picture.data.url;
+                
+                // Get access token
+                FB.getLoginStatus(function(loginResponse) {
+                    document.getElementById('access-token').textContent = loginResponse.authResponse.accessToken;
+                });
+                
+                document.getElementById('user-info').style.display = 'block';
+            });
+        }
+
+        // Logout function
+        function logoutUser() {
+            FB.logout(function(response) {
+                console.log('User logged out');
+                document.getElementById('user-info').style.display = 'none';
+                location.reload();
+            });
+        }
+    </script>
+</body>
+</html>
